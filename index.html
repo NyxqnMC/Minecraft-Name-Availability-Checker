@@ -44,6 +44,21 @@
     button:hover {
       background: #45a049;
     }
+    #progress-container {
+      margin-top: 15px;
+      width: 100%;
+      background: #ddd;
+      border-radius: 5px;
+      height: 20px;
+      display: none;
+    }
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #4CAF50;
+      border-radius: 5px;
+      transition: width 0.2s;
+    }
     #results {
       text-align: left;
       margin-top: 15px;
@@ -63,6 +78,7 @@
     <h1>Minecraft Username Checker</h1>
     <input type="text" id="base" placeholder="Enter base name">
     <button onclick="checkNames()">Check Availability</button>
+    <div id="progress-container"><div id="progress-bar"></div></div>
     <div id="results"></div>
   </div>
 
@@ -79,6 +95,9 @@
     async function checkNames() {
       const base = document.getElementById('base').value.trim();
       const resultsDiv = document.getElementById('results');
+      const progressContainer = document.getElementById('progress-container');
+      const progressBar = document.getElementById('progress-bar');
+
       if (!base) return alert("Enter a base name!");
 
       const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
@@ -93,13 +112,21 @@
       }
 
       resultsDiv.textContent = `Checking ${variations.size} variations...\n`;
+      progressContainer.style.display = "block";
+      progressBar.style.width = "0%";
 
+      let checked = 0;
       for (const name of variations) {
         const available = await isAvailable(name);
+        checked++;
+        const percent = Math.round((checked / variations.size) * 100);
+        progressBar.style.width = percent + "%";
         resultsDiv.textContent += available 
           ? `✅ AVAILABLE: ${name}\n`
           : `❌ Taken: ${name}\n`;
       }
+
+      resultsDiv.textContent += "\n✔️ Done!";
     }
   </script>
 </body>
