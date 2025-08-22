@@ -44,26 +44,9 @@
     button:hover {
       background: #45a049;
     }
-    #progress-container {
-      margin-top: 15px;
-      width: 100%;
-      background: #ddd;
-      border-radius: 5px;
-      height: 20px;
-      display: none;
-    }
-    #progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #4CAF50;
-      border-radius: 5px;
-      transition: width 0.2s;
-    }
     #results {
       text-align: left;
       margin-top: 15px;
-      max-height: 300px;
-      overflow-y: auto;
       font-family: monospace;
       background: #f9f9f9;
       padding: 10px;
@@ -76,57 +59,32 @@
 <body>
   <div class="container">
     <h1>Minecraft Username Checker</h1>
-    <input type="text" id="base" placeholder="Enter base name">
-    <button onclick="checkNames()">Check Availability</button>
-    <div id="progress-container"><div id="progress-bar"></div></div>
+    <input type="text" id="username" placeholder="Enter username">
+    <button onclick="checkName()">Check Availability</button>
     <div id="results"></div>
   </div>
 
   <script>
-    async function isAvailable(name) {
-      try {
-        const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${name}`);
-        return response.status === 204;
-      } catch {
-        return false;
-      }
-    }
-
-    async function checkNames() {
-      const base = document.getElementById('base').value.trim();
+    async function checkName() {
+      const username = document.getElementById('username').value.trim();
       const resultsDiv = document.getElementById('results');
-      const progressContainer = document.getElementById('progress-container');
-      const progressBar = document.getElementById('progress-bar');
 
-      if (!base) return alert("Enter a base name!");
+      if (!username) return alert("Enter a username!");
 
-      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
-      const variations = new Set();
+      resultsDiv.textContent = "Checking...";
 
-      for (let i = 0; i < base.length; i++) {
-        for (const c of chars) {
-          if (c !== base[i]) {
-            variations.add(base.slice(0, i) + c + base.slice(i + 1));
-          }
+      try {
+        const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+        if (response.status === 204) {
+          resultsDiv.textContent = `✅ AVAILABLE: ${username}`;
+        } else if (response.status === 200) {
+          resultsDiv.textContent = `❌ TAKEN: ${username}`;
+        } else {
+          resultsDiv.textContent = `⚠️ Error: Unable to check (${response.status})`;
         }
+      } catch {
+        resultsDiv.textContent = "⚠️ Error: Network issue.";
       }
-
-      resultsDiv.textContent = `Checking ${variations.size} variations...\n`;
-      progressContainer.style.display = "block";
-      progressBar.style.width = "0%";
-
-      let checked = 0;
-      for (const name of variations) {
-        const available = await isAvailable(name);
-        checked++;
-        const percent = Math.round((checked / variations.size) * 100);
-        progressBar.style.width = percent + "%";
-        resultsDiv.textContent += available 
-          ? `✅ AVAILABLE: ${name}\n`
-          : `❌ Taken: ${name}\n`;
-      }
-
-      resultsDiv.textContent += "\n✔️ Done!";
     }
   </script>
 </body>
