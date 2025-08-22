@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minecraft Name Checker</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { margin: 5px; padding: 8px; }
+    #results { margin-top: 15px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Minecraft Username Availability Checker</h1>
+  <input type="text" id="base" placeholder="Enter base name">
+  <button onclick="checkNames()">Check</button>
+  <div id="results"></div>
+
+  <script>
+    async function isAvailable(name) {
+      let response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${name}`);
+      return response.status === 204;
+    }
+
+    async function checkNames() {
+      const base = document.getElementById('base').value.trim();
+      if (!base) return alert("Enter a base name!");
+
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+      const variations = new Set();
+
+      // Generate simple variations (replace each character)
+      for (let i = 0; i < base.length; i++) {
+        for (const c of chars) {
+          if (c !== base[i]) {
+            variations.add(base.slice(0, i) + c + base.slice(i + 1));
+          }
+        }
+      }
+
+      document.getElementById('results').innerText = `Checking ${variations.size} variations...\n`;
+
+      for (const name of variations) {
+        const available = await isAvailable(name);
+        document.getElementById('results').innerText += 
+          (available ? `✅ AVAILABLE: ${name}\n` : `❌ Taken: ${name}\n`);
+      }
+    }
+  </script>
+</body>
+</html>
